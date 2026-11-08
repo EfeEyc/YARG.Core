@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -186,12 +186,13 @@ namespace YARG.Core.Song
             }
         }
 
-        private static readonly unsafe delegate*<SongCache, Dictionary<SongEntry, CacheWriteIndices>, List<string>>[] COLLECTORS =
-        {
-            &CollectCacheTitles, &CollectCacheArtists,  &CollectCacheAlbums,    &CollectCacheGenres, &CollectCacheSubgenres,
-            &CollectCacheYears,  &CollectCacheCharters, &CollectCachePlaylists, &CollectCacheSources,
-        };
+        private delegate List<string> CollectorDelegate(SongCache cache, Dictionary<SongEntry, CacheWriteIndices> nodes);
 
+        private static readonly CollectorDelegate[] COLLECTORS =
+        {
+            CollectCacheTitles, CollectCacheArtists,  CollectCacheAlbums,    CollectCacheGenres, CollectCacheSubgenres,
+            CollectCacheYears,  CollectCacheCharters, CollectCachePlaylists, CollectCacheSources,
+        };
         internal static void WriteCategoriesToCache(FileStream filestream, SongCache cache, Dictionary<SongEntry, CacheWriteIndices> nodes)
         {
             foreach (var list in cache.Entries)
@@ -205,10 +206,7 @@ namespace YARG.Core.Song
             var categories = new List<string>[CacheReadStrings.NUM_CATEGORIES];
             Parallel.For(0, CacheReadStrings.NUM_CATEGORIES, i =>
             {
-                unsafe
-                {
-                    categories[i] = COLLECTORS[i](cache, nodes);
-                }
+                categories[i] = COLLECTORS[i](cache, nodes);
             });
 
             using MemoryStream ms = new();

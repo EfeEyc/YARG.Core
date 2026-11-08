@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace YARG.Core.IO
@@ -109,10 +109,16 @@ namespace YARG.Core.IO
             _Dispose(false);
         }
 
-        [DllImport("STB2CSharp", EntryPoint = "load_image_from_memory")]
+#if UNITY_IOS && !UNITY_EDITOR
+        private const string StbDllName = "__Internal";
+#else
+        private const string StbDllName = "STB2CSharp";
+#endif
+
+        [DllImport(StbDllName, EntryPoint = "load_image_from_memory")]
         private static extern unsafe byte* LoadNative(byte* data, int length, out int width, out int height, out int components);
 
-        [DllImport("STB2CSharp", EntryPoint = "free_image")]
+        [DllImport(StbDllName, EntryPoint = "free_image")]
         private static extern unsafe void FreeNative(byte* image);
     }
 }
