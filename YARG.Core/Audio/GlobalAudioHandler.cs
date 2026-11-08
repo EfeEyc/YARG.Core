@@ -56,20 +56,6 @@ namespace YARG.Core.Audio
         /// </summary>
         public static float WhammyPitchShiftAmount = 1f;
 
-        // Not implemented, as changing the FFT size causes BASS_FX to crash
-        // /// <summary>
-        // /// The size of the whammy FFT buffer. Must be a power of 2, up to 8192.
-        // /// </summary>
-        // /// <remarks>
-        // /// Changes to this value will not be applied until the next song plays.
-        // /// </remarks>
-        // public int WhammyFFTSize
-        // {
-        //     get => (int)Math.Pow(2, _whammyFFTSize);
-        //     set => _whammyFFTSize = (int)Math.Log(value, 2);
-        // }
-        // private int _whammyFFTSize = WHAMMY_FFT_DEFAULT;
-
         /// <summary>
         /// The oversampling factor of the whammy SFX. Must be at least 4.
         /// </summary>
@@ -126,6 +112,11 @@ namespace YARG.Core.Audio
         private static object _instanceLock = new();
         private static AudioManager? _instance;
 
+        private static readonly string[] FALLBACK_FORMATS =
+        {
+            ".ogg", ".mogg", ".wav", ".mp3", ".aiff", ".opus",
+        };
+
         public static void Initialize<TAudioManager>()
             where TAudioManager : AudioManager, new()
         {
@@ -149,21 +140,15 @@ namespace YARG.Core.Audio
             }
         }
 
-        private class NotInitializedException : Exception
-        {
-            public NotInitializedException()
-                : base("Audio manager not initialized") { }
-        }
-
         public static ReadOnlySpan<string> SupportedFormats
         {
             get
             {
-                lock ( _instanceLock)
+                lock (_instanceLock)
                 {
                     if (_instance == null)
                     {
-                        throw new NotInitializedException();
+                        return FALLBACK_FORMATS;
                     }
                     return _instance.SupportedFormats;
                 }
@@ -178,7 +163,7 @@ namespace YARG.Core.Audio
                 {
                     if (_instance == null)
                     {
-                        throw new NotInitializedException();
+                        return 0;
                     }
                     return _instance.PlaybackLatency;
                 }
@@ -193,7 +178,7 @@ namespace YARG.Core.Audio
                 {
                     if (_instance == null)
                     {
-                        throw new NotInitializedException();
+                        return 10;
                     }
                     return _instance.MinimumBufferLength;
                 }
@@ -208,7 +193,7 @@ namespace YARG.Core.Audio
                 {
                     if (_instance == null)
                     {
-                        throw new NotInitializedException();
+                        return 5000;
                     }
                     return _instance.MaximumBufferLength;
                 }
@@ -223,7 +208,7 @@ namespace YARG.Core.Audio
                 {
                     if (_instance == null)
                     {
-                        throw new NotInitializedException();
+                        return 1f;
                     }
                     return _instance.GlobalSpeed;
                 }
@@ -234,7 +219,7 @@ namespace YARG.Core.Audio
                 {
                     if (_instance == null)
                     {
-                        throw new NotInitializedException();
+                        return;
                     }
                     _instance.GlobalSpeed = value;
                 }
@@ -247,7 +232,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 _instance.SfxSamples[(int) sample]?.Play(duration);
             }
@@ -259,7 +244,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 _instance.SfxSamples[(int) sample]?.Stop(duration);
             }
@@ -271,7 +256,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 _instance.SfxSamples[(int) sample]?.Pause();
             }
@@ -283,7 +268,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 _instance.SfxSamples[(int) sample]?.Resume();
             }
@@ -317,7 +302,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 _instance.DrumSfxSamples[(int) sample]?.Play(volume);
             }
@@ -329,7 +314,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
 
                 _instance.VoxSamples[(int) sample]?.Play();
@@ -342,7 +327,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
 
                 if (pitch == MetronomePitch.Hi)
@@ -362,7 +347,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return null;
                 }
                 return _instance.LoadCustomFile(name, stream, speed, volume, normalize, stem);
             }
@@ -374,7 +359,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return null;
                 }
                 return _instance.LoadCustomFile(file, speed, volume, normalize, stem);
             }
@@ -386,7 +371,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return null;
                 }
                 return _instance.CreateMixer(name, speed, mixerVolume, clampStemVolume: clampStemVolume, normalize: normalize);
             }
@@ -398,7 +383,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return null;
                 }
                 return _instance.GetInputDevice(name);
             }
@@ -410,7 +395,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return new List<(int id, string name)>();
                 }
                 return _instance.GetAllInputDevices();
             }
@@ -422,7 +407,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return null;
                 }
                 return _instance.CreateInputDevice(deviceId, name);
             }
@@ -434,7 +419,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 _instance.SetMasterVolume(volume);
             }
@@ -447,7 +432,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 _instance.SetBufferLength(length);
             }
@@ -459,7 +444,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return new List<(int id, string name)>();
                 }
                 return _instance.GetAllOutputDevices();
             }
@@ -471,7 +456,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return 2;
                 }
                 return _instance.GetOutputChannelCount();
             }
@@ -483,7 +468,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return null;
                 }
                 return _instance.GetOutputDevice(name);
             }
@@ -495,7 +480,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
 
                 OutputChannel? channel = _instance.CreateOutputChannel(channelId);
@@ -547,7 +532,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 foreach (SampleChannel sample in _instance.SfxSamples)
                 {
@@ -562,7 +547,7 @@ namespace YARG.Core.Audio
             {
                 if (_instance == null)
                 {
-                    throw new NotInitializedException();
+                    return;
                 }
                 _instance.SetOutputDevice(name);
             }
